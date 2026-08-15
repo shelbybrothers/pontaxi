@@ -76,8 +76,14 @@ const server = createServer((req, res) => {
     return
   }
 
-  // single page app: everything else is the city
-  send(res, urlPath === '/' ? 200 : 404, join(ROOT, 'index.html'), '/index.html')
+  // A missing hashed asset is a genuine 404. Everything else is the city —
+  // served with 200, which is what the Vercel rewrite does, so a link that
+  // picked up a stray path behaves the same on both hosts.
+  if (urlPath.startsWith('/assets/')) {
+    res.writeHead(404, { 'Content-Type': 'text/plain', 'Cache-Control': 'no-cache' }).end('not found')
+    return
+  }
+  send(res, 200, join(ROOT, 'index.html'), '/index.html')
 })
 
 server.listen(PORT, HOST, () => {
