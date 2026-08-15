@@ -44,22 +44,80 @@ scripts/verify.mjs    the city checks
 
 ## Deploying
 
-### Vercel (the site)
+The site is fully static. **Vercel alone is enough** — Railway is only worth
+wiring up if you want a second host, or if a server (a multiplayer relay, an
+API) gets added later and needs somewhere to live.
 
-`vercel.json` is committed, so importing the repo is enough — framework `vite`,
-build `npm run build`, output `dist`. The rewrite sends every path that is not
-`/assets/*` to `index.html`; `/assets/*` is content-hashed by Vite and is the
-only thing marked `immutable`.
+You cannot point `pontaxi.fun` at both. Pick one for the apex — Vercel is the
+better fit for static — and give the other a subdomain if you want it reachable.
 
-Point the `pontaxi.fun` domain at the project in **Settings → Domains**.
+### Vercel
 
-### Railway (alternative host)
+The repo is private, so Vercel's GitHub App has to be granted access to it
+before the repo will appear in the import list.
 
-`railway.json` and `nixpacks.toml` are committed. Create a service from the
-repo and it builds with Node 22, runs `npm run build`, then serves `dist/` with
-`server/index.mjs` on `$PORT`. Health check is `/healthz`.
+1. **vercel.com → Add New → Project**.
+2. Under *Import Git Repository*, find `shelbybrothers/pontaxi`. If it is not
+   listed, click **Adjust GitHub App Permissions**, add the `pontaxi` repo, and
+   come back.
+3. Leave every build setting alone. Framework auto-detects as **Vite**; Root
+   Directory is `./`. `vercel.json` supplies the routing, and nothing else needs
+   overriding.
+4. **Deploy.** First build is about a minute.
+5. **Settings → Domains** → add `pontaxi.fun` and `www.pontaxi.fun`.
+6. At the registrar, create the records **exactly as the Domains tab prints
+   them** — usually an `A` record on the apex and a `CNAME` on `www`. Do not
+   copy IPs from memory or from this file; Vercel changes them.
+7. Wait for the certificate to go green.
 
-Leave **Root Directory** empty — the app is at the repo root.
+Pushes to `main` redeploy automatically from then on.
+
+If the build ever fails on the Node version, set **Settings → Node.js Version**
+to `22.x`; `package.json` only asks for `>=22`.
+
+To deploy once from this machine without touching the dashboard:
+
+```bash
+vercel login
+vercel link
+vercel --prod
+```
+
+That does **not** set up deploy-on-push — only the Git import does.
+
+To check the routing without deploying anything:
+
+```bash
+vercel build
+cat .vercel/output/config.json
+```
+
+`handle: filesystem` must appear **before** the `/(.*) → /index.html` route.
+That ordering is what makes hashed assets come off disk instead of being
+swallowed by the single-page fallback.
+
+### Railway
+
+1. **railway.app → New Project → Deploy from GitHub repo**.
+2. Grant the Railway GitHub App access to `shelbybrothers/pontaxi` — again,
+   private repos are invisible to it until you do.
+3. Pick the repo. Railway reads `railway.json` and `nixpacks.toml` on its own:
+   Node 22, `npm ci`, `npm run build`, then `node server/index.mjs`.
+4. **Settings → Root Directory: leave it empty.** The app is at the repo root.
+   Pointing this at a subdirectory makes Railway build the wrong thing.
+5. No environment variables are needed. Railway injects `PORT` and the server
+   reads it; it binds `0.0.0.0` already.
+6. **Settings → Networking → Generate Domain** for a
+   `*.up.railway.app` URL, or **Custom Domain** to add your own and follow the
+   CNAME it prints.
+7. The health check is `/healthz` — it returns `ok` as soon as `dist/` exists.
+
+To rehearse exactly what Railway runs, before pushing:
+
+```bash
+npm run build
+PORT=8824 npm start      # http://localhost:8824
+```
 
 ## Notes for later
 
