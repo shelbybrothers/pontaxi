@@ -1,0 +1,7 @@
+# railway up uploads the working directory; none of this belongs in the image.
+# dist/ is deliberately excluded — Railway builds it, it is not shipped.
+node_modules
+dist
+.vercel
+.git
+*.log
