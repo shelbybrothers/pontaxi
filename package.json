@@ -1,0 +1,30 @@
+{
+  "name": "pontaxi",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "pontaxi.fun - a small city with a taxi company in it",
+  "scripts": {
+    "dev": "vite --port 5824 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5825 --strictPort",
+    "start": "node server/index.mjs",
+    "verify": "node scripts/verify.mjs",
+    "check": "npm run verify && npm run build"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.3.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "three": "^0.182.0",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
+    "vite": "^7.1.7"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

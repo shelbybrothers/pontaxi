@@ -1,0 +1,13 @@
+# Pin the Node version Railway builds with. Vite 7 needs 20.19+/22.12+, and
+# leaving this to nixpacks' default has bitten this account before.
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node server/index.mjs"
