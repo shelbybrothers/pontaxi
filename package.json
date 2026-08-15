@@ -10,7 +10,10 @@
     "preview": "vite preview --port 5825 --strictPort",
     "start": "node server/index.mjs",
     "verify": "node scripts/verify.mjs",
-    "check": "npm run verify && npm run build"
+    "check": "npm run verify && npm run test:mp && npm run build",
+    "relay": "REALM_PORT=8826 node server/dev-relay.mjs",
+    "dev:all": "concurrently -k -n web,realm -c cyan,magenta \"npm:dev\" \"npm:relay\"",
+    "test:mp": "node scripts/nettest.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",
@@ -18,10 +21,12 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "three": "^0.182.0",
+    "ws": "^8.21.3",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.4",
+    "concurrently": "^10.0.5",
     "vite": "^7.1.7"
   },
   "engines": {

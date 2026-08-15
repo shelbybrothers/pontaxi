@@ -23,7 +23,15 @@ export const useGame = create((set, get) => ({
   toast: null,
   scrolled: false, // past the landing hero — the city signs get out of the way
 
+  connected: false, // realm socket is up
+  population: 0, // people in the city, you included
+  self: null, // { id, name, look } handed out by the realm
+  roster: 0, // bumped when someone joins or leaves, to re-render the peer list
+
   setReady: (ready) => set({ ready }),
+
+  setRealm: (patch) => set((s) => ({ ...patch, roster: s.roster + 1 })),
+  bumpRoster: () => set((s) => ({ roster: s.roster + 1 })),
 
   setScrolled: (scrolled) => {
     if (get().scrolled !== scrolled) set({ scrolled })

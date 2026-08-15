@@ -5,6 +5,7 @@ import { createServer } from 'node:http'
 import { createReadStream, existsSync, statSync } from 'node:fs'
 import { extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { attachRealm, REALM_PATH } from './realm.mjs'
 
 const ROOT = resolve(fileURLToPath(new URL('../dist', import.meta.url)))
 const PORT = Number(process.env.PORT) || 8824
@@ -86,8 +87,13 @@ const server = createServer((req, res) => {
   send(res, 200, join(ROOT, 'index.html'), '/index.html')
 })
 
+// The realm shares this server, so the site and multiplayer are one port,
+// one domain and one deploy.
+attachRealm(server)
+
 server.listen(PORT, HOST, () => {
   console.log(`[pontaxi] serving ${ROOT} on http://${HOST}:${PORT}`)
+  console.log(`[pontaxi] realm on ws://${HOST}:${PORT}${REALM_PATH}`)
 })
 
 for (const sig of ['SIGTERM', 'SIGINT']) {

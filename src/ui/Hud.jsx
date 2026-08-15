@@ -6,12 +6,13 @@ import { Minimap } from './Minimap.jsx'
 import { Prompt } from './Prompt.jsx'
 import { Dialogue } from './Dialogue.jsx'
 import { Touch } from './Touch.jsx'
-import { Parcel } from './Icons.jsx'
+import { Parcel, People } from './Icons.jsx'
 
 export function Hud() {
   const phase = useGame((s) => s.phase)
   const dialogue = useGame((s) => s.dialogue)
   const toast = useGame((s) => s.toast)
+  const population = useGame((s) => s.population)
 
   useEffect(() => {
     const onKey = (e) => {
@@ -41,6 +42,12 @@ export function Hud() {
       />
 
       {phase === 'city' && <Minimap />}
+
+      {population > 1 && (
+        <div className="population" title="people walking this city right now">
+          <People color="#f2b632" /> {population}
+        </div>
+      )}
 
       {toast && (
         <div className="toast">

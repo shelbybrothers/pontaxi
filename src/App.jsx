@@ -7,11 +7,13 @@ import { NPCs, useCrowd } from './world/NPCs.jsx'
 import { Traffic } from './world/Traffic.jsx'
 import { Labels } from './world/Labels.jsx'
 import { Interior } from './world/Interior.jsx'
+import { Peers } from './world/Peers.jsx'
 import { Sky, Lights, CameraRig } from './world/Stage.jsx'
 import { Landing } from './ui/Landing.jsx'
 import { Hud } from './ui/Hud.jsx'
 import { useGame } from './state/store.js'
 import { attachInput } from './lib/input.js'
+import { connectRealm, disconnectRealm } from './net/realm.js'
 
 function Scene() {
   const phase = useGame((s) => s.phase)
@@ -30,6 +32,7 @@ function Scene() {
         <Player npcs={npcs} />
         <NPCs npcs={npcs} />
         <Traffic />
+        <Peers />
         <Labels />
       </group>
 
@@ -40,8 +43,16 @@ function Scene() {
 
 export default function App() {
   const setReady = useGame((s) => s.setReady)
+  const inCity = useGame((s) => s.phase !== 'title')
 
   useEffect(attachInput, [])
+
+  // hold a socket only once someone is actually in the city
+  useEffect(() => {
+    if (!inCity) return
+    connectRealm()
+    return disconnectRealm
+  }, [inCity])
 
   return (
     <>

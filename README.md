@@ -13,22 +13,72 @@ textures, no asset downloads.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5824
+npm run dev:all   # city on :5824, realm on :8826
 ```
+
+`npm run dev` alone works too — without the realm you just walk the city on
+your own, which is the same thing that happens in production until a relay is
+pointed at (see **Multiplayer** below).
 
 | script | what it does |
 | --- | --- |
 | `npm run dev` | Vite dev server on :5824 |
+| `npm run relay` | realm (multiplayer) on :8826 |
+| `npm run dev:all` | both of the above together |
 | `npm run build` | production build into `dist/` |
 | `npm run preview` | serve the build on :5825 |
-| `npm start` | serve `dist/` with the bundled Node server (what Railway runs) |
+| `npm start` | serve `dist/` **and** the realm on one port (what Railway runs) |
 | `npm run verify` | headless checks on the generated city |
-| `npm run check` | `verify` then `build` |
+| `npm run test:mp` | headless two-client check of the realm |
+| `npm run check` | `verify`, `test:mp`, then `build` |
 
-`npm run verify` is the useful one. It regenerates the city in plain Node and
-asserts the things a screenshot cannot show you: no two buildings overlap, no
-building spills onto a carriageway, every door is standable, no window is buried
-inside a facade, and nobody spawns inside a lobby.
+The two test scripts are the useful ones and neither needs a browser.
+
+`verify` regenerates the city in plain Node and asserts what a screenshot
+cannot show you: no two buildings overlap, no building spills onto a
+carriageway, every door is standable, no window is buried inside a facade, and
+nobody spawns inside a lobby.
+
+`test:mp` stands up a realm, connects two clients and asserts they see each
+other join, move and leave — plus that a client cannot walk outside the map,
+claim an impossible speed, or take the realm down with malformed messages.
+
+## Multiplayer
+
+Everyone walks the same city. The realm is a plain WebSocket relay — no
+framework, no schema compiler — holding one record per player and broadcasting
+the roster ten times a second. Remote players are drawn ~130 ms in the past so
+those ten snapshots interpolate smoothly instead of stepping.
+
+Two things worth knowing before changing any of it:
+
+- **Sending runs on `setInterval`, not on the render loop.** A backgrounded tab
+  gets no animation frames, so a frame-driven sender would freeze that player
+  in place for everyone else until they came back.
+- **The relay clamps everything it is told.** Position is clamped to the map
+  and the walk flag to 0..1, so a client cannot put itself outside the city or
+  claim to be sprinting. It is not a full authoritative sim — there is nothing
+  to cheat at yet — but nothing a client says is taken at face value.
+
+If no relay is reachable the client retries five times with backoff, then stops
+and the city plays solo. That is deliberate: the site is on a static host, and
+a page with no relay should not sit there hammering a dead endpoint.
+
+### Pointing production at a realm
+
+The realm rides along on `npm start`, so deploying `server/index.mjs` anywhere
+(Railway, Fly, a VPS) gives you both the static site and multiplayer on one
+port. Then, on the host serving the front end, set:
+
+```
+VITE_REALM_URL = wss://your-realm-host/ws
+```
+
+`VITE_*` values are baked in at build time, so **redeploy after setting it** —
+changing the variable alone does nothing.
+
+With no `VITE_REALM_URL`, the client falls back to `ws://localhost:8826/ws` in
+dev and same-origin `/ws` in production.
 
 ## Layout
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { CITY, BLOCK, N, PARK, PITCH, EDGE, blockCenter, ROADS, ROAD } from '../data/city.js'
 import { live } from '../state/store.js'
+import { peers, samplePeer } from '../net/realm.js'
 
 const SIZE = 158
 const SPAN = EDGE * 2 + 14 // world units the map covers
@@ -62,6 +63,16 @@ export function Minimap() {
       for (const n of live.npcs) {
         ctx.fillStyle = n.named ? '#ffd66b' : '#7fd4e8'
         ctx.fillRect(toPx(n.x) - 1.2, toPx(n.z) - 1.2, 2.4, 2.4)
+      }
+
+      // other people, brighter than the locals so they read as players
+      for (const peer of peers.values()) {
+        const at = samplePeer(peer)
+        if (!at) continue
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(toPx(at.x) - 2.4, toPx(at.z) - 2.4, 4.8, 4.8)
+        ctx.fillStyle = '#f2b632'
+        ctx.fillRect(toPx(at.x) - 1.6, toPx(at.z) - 1.6, 3.2, 3.2)
       }
 
       // you
